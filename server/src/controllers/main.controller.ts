@@ -101,3 +101,46 @@ export const addJob: RequestHandler = async (req, res) => {
     });
   }
 };
+
+export const updateJob: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const { title, description } = req.body;
+  try {
+    await prisma.job.update({
+      where: {
+        id,
+      },
+      data: {
+        title,
+        description,
+      },
+    });
+    res.status(200).json({
+      message: "Job updated successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error updating job",
+    });
+  }
+};
+
+export const deleteJob: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.job.delete({
+      where: {
+        id,
+      },
+    });
+    res.status(200).json({
+      message: "Job deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error deleting job",
+    });
+  }
+};
