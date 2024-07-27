@@ -37,7 +37,8 @@ export const getApplicationById: RequestHandler = async (req, res) => {
 };
 
 export const addApplication: RequestHandler = async (req, res) => {
-  const { jobId, userId, resume, CV } = req.body;
+  const { jobId } = req.params;
+  const { userId, resume, CV } = req.body;
   try {
     const application = await prisma.application.create({
       data: {
@@ -58,7 +59,7 @@ export const addApplication: RequestHandler = async (req, res) => {
 
     const applicationEmail = await prisma.application.findUnique({
       where: {
-        id: application.userId,
+        id: application.id,
       },
       select: {
         User: {
@@ -70,14 +71,21 @@ export const addApplication: RequestHandler = async (req, res) => {
       },
     });
 
+    console.log(applicationEmail?.User.email);
+
     if (application) {
-      resend.emails.send({
+      const { data, error } = await resend.emails.send({
         from: applicationEmail?.User.email as string,
         to: "prajwalpl096@gmail.com",
         subject: "Application Recieved",
         html: `<p>A job application request recieved from<strong>${applicationEmail?.User.email}</strong>!</p>`,
         text: `Hi, A job application request recieved from ${applicationEmail?.User.name}! Make sure to check the application details.`,
       });
+
+      if (error) {
+        console.log(error);
+      }
+      console.log(data);
     }
 
     res.status(201).json({
