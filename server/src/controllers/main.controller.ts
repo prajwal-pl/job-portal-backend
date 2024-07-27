@@ -19,11 +19,31 @@ export const getJobs: RequestHandler = async (req, res) => {
   }
 };
 
+export const getJobById: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const job = await prisma.job.findUnique({ where: { id } });
+    res.status(200).json({
+      message: "Job retrieved successfully",
+      job,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error retrieving job",
+    });
+  }
+};
+
 export const register: RequestHandler = async (req, res) => {
   const { email, name, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
+    if (await prisma.user.findUnique({ where: { email } })) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
     const user = await prisma.user.create({
       data: {
         email,
@@ -58,8 +78,7 @@ export const login: RequestHandler = async (req, res) => {
 };
 
 export const addJob: RequestHandler = async (req, res) => {
-  const { title, description } = req.body;
-  const { userId } = req.body.userId;
+  const { title, description, userId } = req.body;
   try {
     await prisma.job.create({
       data: {
