@@ -7,9 +7,10 @@ const prisma = new PrismaClient();
 
 export const getJobs: RequestHandler = async (req, res) => {
   try {
-    await prisma.job.findMany();
+    const jobs = await prisma.job.findMany();
     res.status(200).json({
       message: "Jobs retrieved successfully",
+      data: jobs,
     });
   } catch (error) {
     console.log(error);
@@ -70,10 +71,29 @@ export const login: RequestHandler = async (req, res) => {
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
       expiresIn: "1h",
     });
-    res.status(200).json({ token });
+    res.status(200).json({ token, user });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error logging in" });
+  }
+};
+
+export const getUserById: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const formattedId = id.replace(/"/g, "");
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: formattedId },
+    });
+    res.status(200).json({
+      message: "User retrieved successfully",
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error retrieving user",
+    });
   }
 };
 
