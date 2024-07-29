@@ -69,7 +69,7 @@ export const login: RequestHandler = async (req, res) => {
     }
 
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
-      expiresIn: "1h",
+      expiresIn: "15d",
     });
     res.status(200).json({ token, user });
   } catch (error) {
@@ -96,14 +96,54 @@ export const getUserById: RequestHandler = async (req, res) => {
     });
   }
 };
+export const getUser: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+    res.status(200).json({
+      message: "User retrieved successfully",
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error retrieving user",
+    });
+  }
+};
 
+export const logout: RequestHandler = async (req, res) => {
+  try {
+    const { token } = req.cookies;
+    if (!token) {
+      return res.status(401).json({ message: "Not logged in" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      userId: string;
+    };
+    await prisma.user.delete({
+      where: {
+        id: decoded.userId,
+      },
+    });
+    res.clearCookie("token");
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error logging out" });
+  }
+};
 export const addJob: RequestHandler = async (req, res) => {
-  const { title, description, userId } = req.body;
+  const { title, description, userId, location } = req.body;
   try {
     await prisma.job.create({
       data: {
         title,
         description,
+        location,
         User: {
           connect: {
             id: userId,

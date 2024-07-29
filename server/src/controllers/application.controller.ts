@@ -40,6 +40,22 @@ export const addApplication: RequestHandler = async (req, res) => {
   const { jobId } = req.params;
   const { userId, resume, CV } = req.body;
   try {
+    // const existingApplication = await prisma.application.findFirst({
+    //   where: {
+    //     Job: {
+    //       id: jobId,
+    //     },
+    //     User: {
+    //       id: userId,
+    //     },
+    //   },
+    // });
+
+    // if (existingApplication) {
+    //   res.status(400).json({
+    //     message: "Application already exists",
+    //   });
+    // }
     const application = await prisma.application.create({
       data: {
         Job: {
@@ -73,20 +89,20 @@ export const addApplication: RequestHandler = async (req, res) => {
 
     console.log(applicationEmail?.User.email);
 
-    if (application) {
-      const { data, error } = await resend.emails.send({
-        from: applicationEmail?.User.email as string,
-        to: "prajwalpl096@gmail.com",
-        subject: "Application Recieved",
-        html: `<p>A job application request recieved from<strong>${applicationEmail?.User.email}</strong>!</p>`,
-        text: `Hi, A job application request recieved from ${applicationEmail?.User.name}! Make sure to check the application details.`,
-      });
+    // // if (application) {
+    // //   const { data, error } = await resend.emails.send({
+    // //     from: applicationEmail?.User.email as string,
+    // //     to: "prajwalpl096@gmail.com",
+    // //     subject: "Application Recieved",
+    // //     html: `<p>A job application request recieved from<strong>${applicationEmail?.User.email}</strong>!</p>`,
+    // //     text: `Hi, A job application request recieved from ${applicationEmail?.User.name}! Make sure to check the application details.`,
+    // //   });
 
-      if (error) {
-        console.log(error);
-      }
-      console.log(data);
-    }
+    // //   if (error) {
+    // //     console.log(error);
+    // //   }
+    //   console.log(data);
+    // }
 
     res.status(201).json({
       message: "Application added successfully",

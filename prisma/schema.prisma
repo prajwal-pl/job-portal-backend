@@ -24,7 +24,7 @@ model User {
   email        String        @unique
   name         String?
   password     String
-  role         ROLE          @default(USER)
+  role         ROLE?
   jobs         Job[]
   applications Application[]
   createdAt    DateTime      @default(now())
@@ -36,6 +36,7 @@ model Job {
   userId       String        @db.ObjectId
   title        String
   description  String
+  location     String
   User         User          @relation(fields: [userId], references: [id])
   applications Application[]
   createdAt    DateTime      @default(now())
