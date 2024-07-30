@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { RequestHandler } from "express";
 import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_KEY!);
@@ -11,8 +12,10 @@ export const getApplications: RequestHandler = async (req, res) => {
   try {
     const applications = await prisma.application.findMany({
       where: {
-        User: {
-          id: formattedId,
+        Job: {
+          User: {
+            id: formattedId,
+          },
         },
       },
     });
@@ -123,5 +126,78 @@ export const addApplication: RequestHandler = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error adding application" });
+  }
+};
+
+export const deleteApplication: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const application = await prisma.application.delete({
+      where: {
+        id,
+      },
+    });
+    res.status(200).json({
+      message: "Application deleted successfully",
+      application,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error deleting application",
+    });
+  }
+};
+
+export const scheduleInterview: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const senderMail = await prisma.application.findUnique({
+      where: { id },
+      select: {
+        User: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // Use `true` for port 465, `false` for all other ports
+      auth: {
+        user: "prajwalpl096@gmail.com",
+        pass: process.env.APP_PASSWORD!,
+      },
+    });
+
+    const mailOptions = {
+      from: "prajwalpl096@gmail.com",
+      to: senderMail?.User.email,
+      subject: "Interview Scheduled",
+      html: "<p>Interview Scheduled</p>",
+    };
+
+    const sendMail = async (transporter: any, mailOptions: any) => {
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log("Mail sent successfully");
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    await sendMail(transporter, mailOptions);
+
+    res.status(200).json({
+      message: "Interview scheduled successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error scheduling interview",
+    });
   }
 };

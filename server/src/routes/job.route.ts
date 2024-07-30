@@ -1,12 +1,13 @@
 import express from "express";
+
+import { authenticateJWT } from "../middleware/auth.middleware";
 import {
   addJob,
   deleteJob,
   getJobById,
   getJobs,
   updateJob,
-} from "../controllers/main.controller";
-import { authenticateJWT } from "../middleware/auth.middleware";
+} from "../controllers/job.controller";
 const router = express.Router();
 
 router.get("/", authenticateJWT, getJobs);
