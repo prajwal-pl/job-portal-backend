@@ -6,8 +6,21 @@ const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_KEY!);
 
 export const getApplications: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const formattedId = id.replace(/"/g, "");
   try {
-    const applications = await prisma.application.findMany();
+    const applications = await prisma.application.findMany({
+      where: {
+        User: {
+          id: formattedId,
+        },
+      },
+    });
+    if (applications.length === 0) {
+      return res.status(404).json({
+        message: "No applications found",
+      });
+    }
     res.status(200).json({
       message: "Application retrieved successfully",
       applications,

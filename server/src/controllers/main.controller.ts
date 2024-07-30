@@ -116,7 +116,14 @@ export const getUser: RequestHandler = async (req, res) => {
 
 export const logout: RequestHandler = async (req, res) => {
   try {
-    const { token } = req.cookies;
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({ message: "Not logged in" });
+    }
+
+    const token = authHeader.split(" ")[1]; // Assuming the token is in the format "Bearer <token>"
+
     if (!token) {
       return res.status(401).json({ message: "Not logged in" });
     }
@@ -124,18 +131,51 @@ export const logout: RequestHandler = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       userId: string;
     };
-    await prisma.user.delete({
-      where: {
-        id: decoded.userId,
-      },
-    });
+
+    // await prisma.user.delete({
+    //   where: {
+    //     id: decoded.userId,
+    //   },
+    // });
+
     res.clearCookie("token");
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error logging out" });
+    console.error("Error:", error);
+    res.status(500).json({
+      data: null,
+      error: {
+        name: "application_error",
+        message: "Unable to fetch data. The request could not be resolved.",
+      },
+    });
   }
 };
+
+export const updateRole: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+  try {
+    const formattedId = id.replace(/"/g, "");
+    await prisma.user.update({
+      where: {
+        id: formattedId,
+      },
+      data: {
+        role,
+      },
+    });
+    res.status(200).json({
+      message: "Role updated successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error updating role",
+    });
+  }
+};
+
 export const addJob: RequestHandler = async (req, res) => {
   const { title, description, userId, location } = req.body;
   try {
