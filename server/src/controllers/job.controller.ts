@@ -42,7 +42,6 @@ export const addJob: RequestHandler = async (req, res) => {
         title,
         description,
         location,
-        salary,
         User: {
           connect: {
             id: userId,

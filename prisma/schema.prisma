@@ -37,7 +37,6 @@ model Job {
   title        String
   description  String
   location     String
-  salary       Int
   User         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   applications Application[]
   createdAt    DateTime      @default(now())
