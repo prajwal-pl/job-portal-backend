@@ -5,7 +5,7 @@
   "scripts": {
     "server": "nodemon server/src/server.ts",
     "dev": "ts-node server/src/server.ts",
-    "build": "tsc",
+    "build": "npm install && tsc --build && prisma generate --schema=./prisma/schema.prisma",
     "start": "node dist/server.js"
   },
   "keywords": [],
