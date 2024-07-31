@@ -4,7 +4,6 @@ import { Resend } from "resend";
 import nodemailer from "nodemailer";
 
 const prisma = new PrismaClient();
-const resend = new Resend(process.env.RESEND_KEY!);
 
 export const getApplications: RequestHandler = async (req, res) => {
   const { id } = req.params;
@@ -56,22 +55,6 @@ export const addApplication: RequestHandler = async (req, res) => {
   const { jobId } = req.params;
   const { userId, resume, CV } = req.body;
   try {
-    // const existingApplication = await prisma.application.findFirst({
-    //   where: {
-    //     Job: {
-    //       id: jobId,
-    //     },
-    //     User: {
-    //       id: userId,
-    //     },
-    //   },
-    // });
-
-    // if (existingApplication) {
-    //   res.status(400).json({
-    //     message: "Application already exists",
-    //   });
-    // }
     const application = await prisma.application.create({
       data: {
         Job: {
@@ -105,20 +88,41 @@ export const addApplication: RequestHandler = async (req, res) => {
 
     console.log(applicationEmail?.User.email);
 
-    // // if (application) {
-    // //   const { data, error } = await resend.emails.send({
-    // //     from: applicationEmail?.User.email as string,
-    // //     to: "prajwalpl096@gmail.com",
-    // //     subject: "Application Recieved",
-    // //     html: `<p>A job application request recieved from<strong>${applicationEmail?.User.email}</strong>!</p>`,
-    // //     text: `Hi, A job application request recieved from ${applicationEmail?.User.name}! Make sure to check the application details.`,
-    // //   });
+    if (application) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // Use `true` for port 465, `false` for all other ports
+        auth: {
+          user: "prajwalpl096@gmail.com",
+          pass: process.env.APP_PASSWORD!,
+        },
+      });
 
-    // //   if (error) {
-    // //     console.log(error);
-    // //   }
-    //   console.log(data);
-    // }
+      const mailOptions = {
+        from: "prajwalpl096@gmail.com",
+        to: applicationEmail?.User.email,
+        subject: "Application Recieved",
+        html: `<p>A job application request recieved from<strong>${applicationEmail?.User.email}</strong>!</p>`,
+        text: `Hi, A job application request recieved from ${applicationEmail?.User.name}! Make sure to check the application details.`,
+      };
+
+      const sendMail = async (transporter: any, mailOptions: any) => {
+        try {
+          await transporter.sendMail(mailOptions);
+          console.log("Mail sent successfully");
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      await sendMail(transporter, mailOptions);
+
+      res.status(200).json({
+        message: "Applied successfully",
+      });
+    }
 
     res.status(201).json({
       message: "Application added successfully",
