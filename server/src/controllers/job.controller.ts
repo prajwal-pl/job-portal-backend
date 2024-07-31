@@ -35,13 +35,14 @@ export const getJobById: RequestHandler = async (req, res) => {
 };
 
 export const addJob: RequestHandler = async (req, res) => {
-  const { title, description, userId, location } = req.body;
+  const { title, description, userId, location, salary } = req.body;
   try {
     await prisma.job.create({
       data: {
         title,
         description,
         location,
+        salary,
         User: {
           connect: {
             id: userId,
