@@ -38,7 +38,7 @@ model Job {
   description  String
   location     String
   salary       Int
-  User         User          @relation(fields: [userId], references: [id])
+  User         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   applications Application[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -48,7 +48,7 @@ model Application {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @db.ObjectId
   jobId     String   @db.ObjectId
-  Job       Job      @relation(fields: [jobId], references: [id])
+  Job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   resume    String
   CV        String
   User      User     @relation(fields: [userId], references: [id])
